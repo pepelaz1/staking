@@ -20,7 +20,7 @@ contract Staking {
     //     greeting = _greeting;
     // }
 
-    function stake() public {
+    function stake(uint256 _amount) public {
 
     }
 
