@@ -20,6 +20,7 @@ task("stake", "Stake some tokens")
     const contract = new hre.ethers.Contract(
         address, abi, signer
     )
+    contract.stake(amount);
 });
 
 task("unstake", "Unstake tokens")
@@ -32,10 +33,11 @@ task("unstake", "Unstake tokens")
     const contract = new hre.ethers.Contract(
         address, abi, signer
     )
+    contract.unstake();
 });
 
 task("claim", "Claim reward")
-.addParam("address","Claim reward")
+.addParam("address","Address of the contract")
 .setAction(async (taskArgs, hre) => {
     const { address: address } = taskArgs;
     const { abi } = await hre.artifacts.readArtifact("Staking");
@@ -44,4 +46,5 @@ task("claim", "Claim reward")
     const contract = new hre.ethers.Contract(
         address, abi, signer
     )
+    contract.claim();
 });
