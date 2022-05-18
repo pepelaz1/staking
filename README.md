@@ -1,1 +1,1 @@
-Uniswap staking
+Staking of Uniswap LP tokens
