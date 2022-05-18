@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract LpToken is ERC20 {
     uint constant _initial_supply = 10e18;
-    constructor() ERC20("LpToken", "TT") {
+    constructor() ERC20("LpToken", "LPT") {
         _mint(msg.sender, _initial_supply);
     }
 }
