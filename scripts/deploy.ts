@@ -11,11 +11,7 @@ const abiRouter = require('../artifacts/@uniswap/v2-periphery/contracts/interfac
 
 
 async function main() {
- 
-    const Erc20Token = await ethers.getContractFactory("Erc20Token");
-    const rewardToken = await Erc20Token.deploy();
-    await rewardToken.deployed();
-    console.log("Reward token deployed to:", erc20token.address);
+
 
     // delpoy TokenOne
     const TokenOne = await ethers.getContractFactory("TokenOne");

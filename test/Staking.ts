@@ -55,17 +55,19 @@ describe("Staking", function () {
 
     // add liquidity pool    
     tx = await router.addLiquidityETH(tokenOne.address, parseEther('0.05'), 0, 0, acc1.address, MaxUint256, {
-      value: parseEther('0.01')
+      value: parseEther('0.00001')
     });
     await tx.wait();
 
     const Staking = await ethers.getContractFactory('Staking', acc1)
     staking = await Staking.deploy(lpToken.address, rewardToken.address)
     await staking.deployed()
+    //console.log("Staking contract deployed to: ", staking.address)
 
     await lpToken.approve(staking.address, MaxUint256);
 
-    //console.log("Staking contract deployed to: ", await lpToken.balanceOf(addr));
+    let rewardSupply = parseEther("3000")
+    rewardToken.mint(staking.address, rewardSupply)
   })
 
   it("should be deployed", async function () {
@@ -76,16 +78,16 @@ describe("Staking", function () {
   it("should be able to stake", async function () {
     const amount = await lpToken.balanceOf(acc1.address)
 
-    console.log("stake: before");
-    console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
-    console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
+    // console.log("stake: before");
+    // console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
+    // console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
 
     const tx = await staking.stake(amount)
     await tx.wait()
 
-    console.log("stake: after");
-    console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
-    console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
+    // console.log("stake: after");
+    // console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
+    // console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
   })
 
   it("should be able to unstake", async function () {
@@ -94,16 +96,16 @@ describe("Staking", function () {
     let tx = await staking.stake(amount)
     await tx.wait()
 
-    console.log("unstake: before");
-    console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
-    console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
+    // console.log("unstake: before");
+    // console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
+    // console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
 
     tx = await staking.unstake()
     await tx.wait() 
 
-    console.log("unstake: after");
-    console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
-    console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
+    // console.log("unstake: after");
+    // console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
+    // console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
   })
 
   it("should be able to claim reward", async function () {

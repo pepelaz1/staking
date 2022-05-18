@@ -12,8 +12,6 @@ contract Staking {
 
     ERC20 private lpToken;
 
-   // address private rewardAddress = 0x5FbDB2315678afecb367f032d93F642f64180aa3;
-
     Erc20Token private rewardToken;
  
     mapping(address => uint256) balances;   
@@ -44,11 +42,10 @@ contract Staking {
     }
 
     function claim() public  {
-         console.log("rewardToken", rewardToken.totalSupply());
+        uint256 amount = rewardToken.totalSupply() / 100 * rewardPercent;
 
-        uint256 amount = balances[msg.sender] / 100 * rewardPercent;
-        lpToken.transferFrom(address(this), msg.sender, amount);
-        balances[msg.sender] -= amount;
+        rewardToken.approve(address(this), amount);
+        rewardToken.transferFrom(address(this), msg.sender, amount);
     }
 
     function configure(uint8 _rewardPercent) onlyOwner public {
