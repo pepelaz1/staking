@@ -78,16 +78,10 @@ describe("Staking", function () {
   it("should be able to stake", async function () {
     const amount = await lpToken.balanceOf(acc1.address)
 
-    // console.log("stake: before");
-    // console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
-    // console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
-
     const tx = await staking.stake(amount)
     await tx.wait()
 
-    // console.log("stake: after");
-    // console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
-    // console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
+    expect(await staking.stakedBy(acc1.address)).to.equal(amount);
   })
 
   it("should be able to unstake", async function () {
@@ -96,16 +90,10 @@ describe("Staking", function () {
     let tx = await staking.stake(amount)
     await tx.wait()
 
-    // console.log("unstake: before");
-    // console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
-    // console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
-
     tx = await staking.unstake()
     await tx.wait() 
 
-    // console.log("unstake: after");
-    // console.log("lp token user balance", await lpToken.balanceOf(acc1.address));
-    // console.log("lp token contract balance", await lpToken.balanceOf(staking.address));
+    expect(await staking.stakedBy(acc1.address)).to.equal(0);
   })
 
   it("should be able to claim reward", async function () {

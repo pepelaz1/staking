@@ -36,6 +36,10 @@ contract Staking {
         balances[msg.sender] = _amount;
     }
 
+    function stakedBy(address _account) public view returns (uint256) {
+        return balances[_account];
+    }
+
     function unstake() public {
         lpToken.transferFrom(address(this), msg.sender, balances[msg.sender]);
         balances[msg.sender] = 0;
