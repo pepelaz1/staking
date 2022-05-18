@@ -71,12 +71,9 @@ describe("Staking", function () {
     rewardToken.mint(staking.address, rewardSupply)
   })
 
-
-
   it("should be deployed", async function () {
     expect(staking.address).to.be.properAddress
   })
-
 
 
   it("should be able to stake", async function () {

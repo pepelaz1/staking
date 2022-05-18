@@ -9,8 +9,39 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 });
 
 
-task("latestBlock", "Prints the latest block number", async (taskArgs, hre) => {
-    const blockNumber = await hre.ethers.provider.getBlock("latest")
-    console.log(blockNumber);
+task("stake", "Stake some tokens")
+.addParam("address","Address of the contract")
+.addParam("amount","Amount of tokens stake")
+.setAction(async (taskArgs, hre) => {
+    const { address: address, amount: amount } = taskArgs;
+    const { abi } = await hre.artifacts.readArtifact("Staking");
+    const [signer] = await hre.ethers.getSigners();
+
+    const contract = new hre.ethers.Contract(
+        address, abi, signer
+    )
 });
 
+task("unstake", "Unstake tokens")
+.addParam("address","Address of the contract")
+.setAction(async (taskArgs, hre) => {
+    const { address: address } = taskArgs;
+    const { abi } = await hre.artifacts.readArtifact("Staking");
+    const [signer] = await hre.ethers.getSigners();
+
+    const contract = new hre.ethers.Contract(
+        address, abi, signer
+    )
+});
+
+task("claim", "Claim reward")
+.addParam("address","Claim reward")
+.setAction(async (taskArgs, hre) => {
+    const { address: address } = taskArgs;
+    const { abi } = await hre.artifacts.readArtifact("Staking");
+    const [signer] = await hre.ethers.getSigners();
+
+    const contract = new hre.ethers.Contract(
+        address, abi, signer
+    )
+});
