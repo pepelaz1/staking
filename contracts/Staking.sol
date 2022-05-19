@@ -65,7 +65,7 @@ contract Staking {
     }
 
     function claim() timePassed(rewardDelay) public  {
-        require(!rewarded[msg.sender], "Already rewarded");
+         require(!rewarded[msg.sender], "Already rewarded");
        // uint256 amount = rewardToken.totalSupply() / 100 * rewardPercent;
         uint256 amount = balances[msg.sender] / 100 * rewardPercent;
 
