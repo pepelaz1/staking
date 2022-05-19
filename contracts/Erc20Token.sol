@@ -8,12 +8,6 @@ contract Erc20Token {
 
     address private immutable owner;
 
-    // uint256  private totalAmount = 10000e18;
-
-    // string  constant private tokenName = "Pepelaz";
-
-    // string constant private tokenSymbol = "PPLZ";
-
     uint256  private totalAmount;
 
     string  private tokenName;

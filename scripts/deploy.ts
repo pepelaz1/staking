@@ -12,13 +12,13 @@ async function main() {
 
     // deploy reward token
     const Erc20Token = await ethers.getContractFactory("Erc20Token");
-    const rewardToken = await Erc20Token.deploy();
+    const rewardToken = await Erc20Token.deploy("Reward", "RWD", parseEther("10000"));
     await rewardToken.deployed();
     console.log("Reward token deployed to:", rewardToken.address);
 
     // delpoy TokenOne
-    const TokenOne = await ethers.getContractFactory("TokenOne");
-    const tokenOne = await TokenOne.deploy();
+    const TokenOne = await ethers.getContractFactory("Erc20Token");
+    const tokenOne = await TokenOne.deploy("TokenOne", "TO", parseEther("10000"));
     await tokenOne.deployed();
     console.log("TokenOne deployed to:", tokenOne.address);
 
@@ -34,7 +34,7 @@ async function main() {
     const pairAddress = await factory.getPair(tokenOne.address, wethAddress);
     console.log("LpToken address:", pairAddress);
 
-    let lpToken = await ethers.getContractAt("LpToken", pairAddress);
+    let lpToken = await ethers.getContractAt("ERC20", pairAddress);
 
     // approve
     await tokenOne.approve(routerAddress, MaxUint256);

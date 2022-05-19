@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol"; 
+import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol"; 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./Erc20Token.sol";
 
@@ -17,6 +19,8 @@ contract Staking {
     uint8 private rewardPercent = 20;
 
     mapping(address => uint256) balances;   
+
+    mapping(address => bool) rewarded;
 
     // times when stacking begins
     mapping(address => uint) startTimes; 
@@ -61,10 +65,14 @@ contract Staking {
     }
 
     function claim() timePassed(rewardDelay) public  {
-        uint256 amount = rewardToken.totalSupply() / 100 * rewardPercent;
+        require(!rewarded[msg.sender], "Already rewarded");
+       // uint256 amount = rewardToken.totalSupply() / 100 * rewardPercent;
+        uint256 amount = balances[msg.sender] / 100 * rewardPercent;
 
         rewardToken.approve(address(this), amount);
         rewardToken.transferFrom(address(this), msg.sender, amount);
+
+        rewarded[msg.sender] = true;
     }
 
     function configure(uint8 _rewardPercent, uint8 _rewardDelay, uint8 _unstakeDelay) onlyOwner public {

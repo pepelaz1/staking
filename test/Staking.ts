@@ -33,9 +33,6 @@ describe("Staking", function () {
     const TokenOne = await ethers.getContractFactory("Erc20Token");
     const tokenOne = await TokenOne.deploy("TokenOne", "TO", parseEther("10000"));
     await tokenOne.deployed();
-    // const TokenOne = await ethers.getContractFactory("TokenOne");
-    // const tokenOne = await TokenOne.deploy();
-    // await tokenOne.deployed();
     //console.log("TokenOne deployed to:", tokenOne.address);
 
     let factory = await ethers.getContractAt("IUniswapV2Factory", factoryAddress);
@@ -50,11 +47,10 @@ describe("Staking", function () {
     const pairAddress = await factory.getPair(tokenOne.address, wethAddress);
     //console.log("LpToken address:", pairAddress);
 
-    lpToken = await ethers.getContractAt("Erc20Token", pairAddress);
+    lpToken = await ethers.getContractAt("ERC20", pairAddress);
 
     // approve
     await tokenOne.approve(routerAddress, MaxUint256);
- 
 
     // add liquidity pool    
     tx = await router.addLiquidityETH(tokenOne.address, parseEther('0.05'), 0, 0, acc1.address, MaxUint256, {
@@ -87,7 +83,6 @@ describe("Staking", function () {
 
     expect(await staking.stakedBy(acc1.address)).to.equal(amount);
   })
-
 
 
   it("should be able to unstake", async function () {
@@ -125,6 +120,21 @@ describe("Staking", function () {
 
     tx = await staking.claim()
     await tx.wait() 
+  })
+
+
+  it("should not be able to claim reward more than once", async function () {
+    const amount = await lpToken.balanceOf(acc1.address)
+
+    let tx = await staking.stake(amount)
+    await tx.wait()
+
+    await network.provider.send("evm_increaseTime", [20 * 60 + 1]) // add 20 mins and 1 sec to current time
+
+    tx = await staking.claim()
+    await tx.wait() 
+
+    await expect(staking.claim()).to.be.revertedWith("Already rewarded");
   })
 
 
