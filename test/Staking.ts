@@ -25,14 +25,17 @@ describe("Staking", function () {
 
     // deploy reward token
     const Erc20Token = await ethers.getContractFactory("Erc20Token");
-    const rewardToken = await Erc20Token.deploy();
+    const rewardToken = await Erc20Token.deploy("Reward", "RWD", parseEther("10000"));
     await rewardToken.deployed();
     //console.log("Reward token deployed to:", rewardToken.address);
 
     // delpoy TokenOne
-    const TokenOne = await ethers.getContractFactory("TokenOne");
-    const tokenOne = await TokenOne.deploy();
+    const TokenOne = await ethers.getContractFactory("Erc20Token");
+    const tokenOne = await TokenOne.deploy("TokenOne", "TO", parseEther("10000"));
     await tokenOne.deployed();
+    // const TokenOne = await ethers.getContractFactory("TokenOne");
+    // const tokenOne = await TokenOne.deploy();
+    // await tokenOne.deployed();
     //console.log("TokenOne deployed to:", tokenOne.address);
 
     let factory = await ethers.getContractAt("IUniswapV2Factory", factoryAddress);
@@ -47,7 +50,7 @@ describe("Staking", function () {
     const pairAddress = await factory.getPair(tokenOne.address, wethAddress);
     //console.log("LpToken address:", pairAddress);
 
-    lpToken = await ethers.getContractAt("LpToken", pairAddress);
+    lpToken = await ethers.getContractAt("Erc20Token", pairAddress);
 
     // approve
     await tokenOne.approve(routerAddress, MaxUint256);

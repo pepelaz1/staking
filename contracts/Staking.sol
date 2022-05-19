@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./Erc20Token.sol";
 
 contract Staking {
-    uint256 private constant MAX_UINT256 = 2**256 - 1;
+    //uint256 private constant MAX_UINT256 = 2**256 - 1;
 
     address private immutable owner;
 
@@ -40,7 +40,7 @@ contract Staking {
     constructor(address _lpAddress, address _rewardAddress)  {
         owner = msg.sender;
         lpToken = ERC20(_lpAddress);
-        lpToken.approve(address(this), MAX_UINT256);
+        lpToken.approve(address(this), type(uint256).max);
 
         rewardToken = Erc20Token(_rewardAddress);
     }

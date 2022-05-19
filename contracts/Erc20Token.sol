@@ -8,11 +8,17 @@ contract Erc20Token {
 
     address private immutable owner;
 
-    uint256  private totalAmount = 10000e18;
+    // uint256  private totalAmount = 10000e18;
 
-    string  constant private tokenName = "Pepelaz";
+    // string  constant private tokenName = "Pepelaz";
 
-    string constant private tokenSymbol = "PPLZ";
+    // string constant private tokenSymbol = "PPLZ";
+
+    uint256  private totalAmount;
+
+    string  private tokenName;
+
+    string private tokenSymbol;
 
     mapping(address => uint256) balances;   
 
@@ -27,8 +33,11 @@ contract Erc20Token {
         _;
     }
 
-    constructor() {
+    constructor(string memory _name, string memory _symbol, uint256 _totalSupply) {
         owner = msg.sender;
+        totalAmount = _totalSupply;
+        tokenName = _name;
+        tokenSymbol = _symbol;
         balances[msg.sender] = totalAmount;
     }
 

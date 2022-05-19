@@ -14,7 +14,7 @@ describe("Erc20Token", function () {
   beforeEach(async function() {
     [acc1, acc2, acc3] = await ethers.getSigners()
     const Erc20Token = await ethers.getContractFactory('Erc20Token', acc1)
-    erc20token = await Erc20Token.deploy()
+    erc20token = await Erc20Token.deploy("Pepelaz","PPLZ", ethers.utils.parseEther("10000"))
     await erc20token.deployed()  
   })
 
