@@ -94,11 +94,12 @@ describe("Staking", function () {
 
     expect(await staking.stakedBy(acc1.address)).to.equal(amount);
 
-    await network.provider.send("evm_increaseTime", [3 * 60 + 1]) // add 3 mins and 1 sec to current time
+    await network.provider.send("evm_increaseTime", [20 * 60 + 1]) // add 3 mins and 1 sec to current time
 
     tx = await staking.stake(amount)
     await tx.wait()
 
+    
     expect(await staking.stakedBy(acc1.address)).to.equal(amount.mul(2));
   })
 
@@ -139,17 +140,20 @@ describe("Staking", function () {
     await expect(staking.unstake()).to.be.revertedWith("Time delay has not passed yet");
   })
 
-
   it("should be able to claim reward", async function () {
-    const amount = await lpToken.balanceOf(acc1.address)
+    const amount = parseEther("0.0001")
+    const before = await rewardToken.balanceOf(acc1.address)
 
     let tx = await staking.stake(amount)
     await tx.wait()
 
-    await network.provider.send("evm_increaseTime", [60 * 60 + 1]) // add 0 mins and 1 sec to current time
+    await network.provider.send("evm_increaseTime", [60 * 60 + 1]) // add 60 mins and 1 sec to current time
 
     tx = await staking.claim()
     await tx.wait() 
+
+    const result = before.add(parseEther("0.00006"))
+    expect(await rewardToken.balanceOf(acc1.address)).to.equal(result);
   })
 
 

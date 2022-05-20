@@ -46,12 +46,12 @@ contract Staking {
     function stake(uint256 _amount) public {  
         lpToken.transferFrom(msg.sender, address(this), _amount);
         balances[msg.sender] += _amount;
-
-        if (block.timestamp > startTimes[msg.sender] +  rewardDelay * 60 ) {
-             // if reward delay has passed then claim 
+        
+        if (startTimes[msg.sender] != 0 && block.timestamp > startTimes[msg.sender] +  rewardDelay * 60) {
              claim();
+        } else {
+            startTimes[msg.sender] = block.timestamp;
         }
-        startTimes[msg.sender] = block.timestamp;
     }
 
     function stakedBy(address _account) public view returns (uint256) {
@@ -60,7 +60,6 @@ contract Staking {
 
     function unstake() timePassed(unstakeDelay) public {
         if (block.timestamp > startTimes[msg.sender] +  rewardDelay * 60 ) {
-             // if reward delay has passed then claim 
              claim();
         } 
         lpToken.transfer(msg.sender, balances[msg.sender]);
