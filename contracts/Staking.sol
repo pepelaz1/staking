@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./Erc20Token.sol";
 
 contract Staking {
-    //uint256 private constant MAX_UINT256 = 2**256 - 1;
-
     address private immutable owner;
 
     ERC20 private lpToken;
@@ -20,7 +18,7 @@ contract Staking {
 
     mapping(address => uint256) balances;   
 
-    mapping(address => bool) rewarded;
+    mapping(address => uint256) rewards;   
 
     // times when stacking begins
     mapping(address => uint) startTimes; 
@@ -44,15 +42,22 @@ contract Staking {
     constructor(address _lpAddress, address _rewardAddress)  {
         owner = msg.sender;
         lpToken = ERC20(_lpAddress);
-        lpToken.approve(address(this), type(uint256).max);
-
         rewardToken = Erc20Token(_rewardAddress);
     }
 
     function stake(uint256 _amount) public {  
         lpToken.transferFrom(msg.sender, address(this), _amount);
-        balances[msg.sender] = _amount;
+        balances[msg.sender] += _amount;
+
+       if (block.timestamp > startTimes[msg.sender] +  uint16(rewardDelay) * 60 ) {
+             // if reward delay has passed then claim 
+             claim();
+        }
         startTimes[msg.sender] = block.timestamp;
+
+        // calculate reward and save it for caller address
+        uint256 reward = rewards[msg.sender] + (_amount * rewardPercent) / 100;
+        rewards[msg.sender] = reward;
     }
 
     function stakedBy(address _account) public view returns (uint256) {
@@ -60,19 +65,13 @@ contract Staking {
     }
 
     function unstake() timePassed(unstakeDelay) public {
-        lpToken.transferFrom(address(this), msg.sender, balances[msg.sender]);
+        lpToken.transfer(msg.sender, balances[msg.sender]);
         balances[msg.sender] = 0;
     }
 
     function claim() timePassed(rewardDelay) public  {
-         require(!rewarded[msg.sender], "Already rewarded");
-       // uint256 amount = rewardToken.totalSupply() / 100 * rewardPercent;
-        uint256 amount = balances[msg.sender] / 100 * rewardPercent;
-
-        rewardToken.approve(address(this), amount);
-        rewardToken.transferFrom(address(this), msg.sender, amount);
-
-        rewarded[msg.sender] = true;
+        rewardToken.transfer(msg.sender, rewards[msg.sender]);
+        rewards[msg.sender] = 0;
     }
 
     function configure(uint8 _rewardPercent, uint8 _rewardDelay, uint8 _unstakeDelay) onlyOwner public {

@@ -12,7 +12,7 @@ async function main() {
 
     // deploy reward token
     const Erc20Token = await ethers.getContractFactory("Erc20Token");
-    const rewardToken = await Erc20Token.deploy("Reward", "RWD", parseEther("10000"));
+    const rewardToken = await Erc20Token.deploy("Reward", "RWD", parseEther("10"));
     await rewardToken.deployed();
     console.log("Reward token deployed to:", rewardToken.address);
 

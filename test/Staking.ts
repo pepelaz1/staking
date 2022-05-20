@@ -17,7 +17,13 @@ describe("Staking", function () {
 
   let staking: any;
 
+  let rewardToken: any;
+
+  let tokenOne: any;
+
   let lpToken: any;
+
+  let router: any;
 
   beforeEach(async function () {
 
@@ -25,18 +31,18 @@ describe("Staking", function () {
 
     // deploy reward token
     const Erc20Token = await ethers.getContractFactory("Erc20Token");
-    const rewardToken = await Erc20Token.deploy("Reward", "RWD", parseEther("10000"));
+    rewardToken = await Erc20Token.deploy("Reward", "RWD", parseEther("10"));
     await rewardToken.deployed();
     //console.log("Reward token deployed to:", rewardToken.address);
 
     // delpoy TokenOne
     const TokenOne = await ethers.getContractFactory("Erc20Token");
-    const tokenOne = await TokenOne.deploy("TokenOne", "TO", parseEther("10000"));
+    tokenOne = await TokenOne.deploy("TokenOne", "TO", parseEther("10000"));
     await tokenOne.deployed();
     //console.log("TokenOne deployed to:", tokenOne.address);
 
     let factory = await ethers.getContractAt("IUniswapV2Factory", factoryAddress);
-    let router = await ethers.getContractAt("IUniswapV2Router02", routerAddress);
+    router = await ethers.getContractAt("IUniswapV2Router02", routerAddress);
 
     const wethAddress = await router.WETH()
 
@@ -52,7 +58,7 @@ describe("Staking", function () {
     // approve
     await tokenOne.approve(routerAddress, MaxUint256);
 
-    // add liquidity pool    
+    // add liquidity     
     tx = await router.addLiquidityETH(tokenOne.address, parseEther('0.05'), 0, 0, acc1.address, MaxUint256, {
       value: parseEther('0.00001')
     });
@@ -122,20 +128,79 @@ describe("Staking", function () {
     await tx.wait() 
   })
 
+  it("should be able to stake, then claim, then stake again and claim", async function () {
+    let initialValue = await rewardToken.balanceOf(acc1.address)
 
-  it("should not be able to claim reward more than once", async function () {
-    const amount = await lpToken.balanceOf(acc1.address)
-
-    let tx = await staking.stake(amount)
+     // stake some amount
+    let amount1 = parseEther("0.00001")
+    let tx = await staking.stake(amount1)
     await tx.wait()
 
-    await network.provider.send("evm_increaseTime", [20 * 60 + 1]) // add 20 mins and 1 sec to current time
+    expect(await staking.stakedBy(acc1.address)).to.equal(amount1)
+
+    await network.provider.send("evm_increaseTime", [20 * 60 + 1])
 
     tx = await staking.claim()
-    await tx.wait() 
+    await tx.wait()
 
-    await expect(staking.claim()).to.be.revertedWith("Already rewarded");
+    let calculatedReward = amount1.mul(20).div(100).add(initialValue)
+    expect(await rewardToken.balanceOf(acc1.address)).to.equal(calculatedReward)
+
+    // stake some more
+    let amount2 = parseEther("0.00003")
+    tx = await staking.stake(amount2)
+    await tx.wait()
+
+    let sumAmount = amount1.add(amount2)
+    expect(await staking.stakedBy(acc1.address)).to.equal(sumAmount)
+  
+    await network.provider.send("evm_increaseTime", [20 * 60 + 1])
+
+    tx = await staking.claim()
+    await tx.wait()
+
+    calculatedReward =  sumAmount.mul(20).div(100).add(initialValue)
+    expect(await rewardToken.balanceOf(acc1.address)).to.equal(calculatedReward);
+    
   })
+
+  it("should be able to stake and then stake again before claim delay elapsed", async function () {
+    let initialValue = await rewardToken.balanceOf(acc1.address)
+
+    // stake some amount
+    let amount1 = parseEther("0.00001")
+    let tx = await staking.stake(amount1)
+    await tx.wait()
+
+    expect(await staking.stakedBy(acc1.address)).to.equal(amount1);
+
+    // don't claim this time
+
+    // await network.provider.send("evm_increaseTime", [20 * 60 + 1])
+    // tx = await staking.claim()
+    // await tx.wait()
+    // let calculatedReward =  amount1.mul(20).div(100)
+    // expect(await rewardToken.balanceOf(acc1.address)).to.equal(calculatedReward);
+
+    // wait some delay which less than allowed claim delay
+    await network.provider.send("evm_increaseTime", [5 * 60 + 1])
+
+    // and stake again 
+    let amount2 = parseEther("0.00003")
+    tx = await staking.stake(amount2)
+    await tx.wait()
+
+    let sumAmount = amount1.add(amount2)
+    expect(await staking.stakedBy(acc1.address)).to.equal(sumAmount)
+
+    await network.provider.send("evm_increaseTime", [20 * 60 + 1])
+
+    tx = await staking.claim()
+    await tx.wait()
+
+    let calculatedReward = sumAmount.mul(20).div(100).add(initialValue)
+    expect(await rewardToken.balanceOf(acc1.address)).to.equal(calculatedReward);
+ })
 
 
   it("should not be able to claim before configured delay", async function () {
