@@ -20,8 +20,6 @@ contract Staking {
 
     mapping(address => uint256) rewards;   
 
-    mapping(address => uint256) pendingRewards; 
-
     // times when stacking begins
     mapping(address => uint) startTimes; 
 
@@ -54,15 +52,12 @@ contract Staking {
         if (block.timestamp > startTimes[msg.sender] +  rewardDelay * 60 ) {
              // if reward delay has passed then claim 
              claim();
-        } else {
-            pendingRewards[msg.sender] = rewards[msg.sender];
         }
         startTimes[msg.sender] = block.timestamp;
 
         // calculate reward and save it for caller address
        // uint256 reward = rewards[msg.sender] + (_amount * rewardPercent) / 100;
-        uint256 reward = (_amount * rewardPercent) / 100;
-        rewards[msg.sender] = reward;
+        rewards[msg.sender] = (balances[msg.sender] * rewardPercent) / 100;
     }
 
     function stakedBy(address _account) public view returns (uint256) {
@@ -73,17 +68,16 @@ contract Staking {
         if (block.timestamp > startTimes[msg.sender] +  rewardDelay * 60 ) {
              // if reward delay has passed then claim 
              claim();
-        } else {
-            pendingRewards[msg.sender] = rewards[msg.sender];
-        }
+        } 
         lpToken.transfer(msg.sender, balances[msg.sender]);
         balances[msg.sender] = 0;
     }
 
+
     function claim() timePassed(rewardDelay) public  {      
         uint cnt = ((block.timestamp - startTimes[msg.sender]) / 60) / rewardDelay;
- 
-        uint256 totalReward = rewards[msg.sender] * cnt + pendingRewards[msg.sender];
+
+        uint256 totalReward = rewards[msg.sender] * cnt;
         rewardToken.transfer(msg.sender, totalReward);
         rewards[msg.sender] = 0;
     }

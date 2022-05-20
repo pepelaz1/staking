@@ -123,8 +123,8 @@ describe("Staking", function () {
     tx = await staking.claim()
     await tx.wait()
 
-    calculatedReward =  sumAmount.mul(20).div(100).add(initialValue)
-    expect(await rewardToken.balanceOf(acc1.address)).to.equal(calculatedReward);
+    let calculatedReward1 =  sumAmount.mul(20).div(100).add(initialValue).add(amount1.mul(20).div(100))
+    expect(await rewardToken.balanceOf(acc1.address)).to.equal(calculatedReward1)
     
   })
 
