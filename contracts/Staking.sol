@@ -10,24 +10,26 @@ import "./Erc20Token.sol";
 contract Staking {
     address private immutable owner;
 
-    ERC20 private lpToken;
+    ERC20 private immutable lpToken;
 
-    Erc20Token private rewardToken;
+    Erc20Token private immutable rewardToken;
  
-    uint8 private rewardPercent = 20;
+    uint256 private rewardPercent = 20;
 
     mapping(address => uint256) balances;   
 
     mapping(address => uint256) rewards;   
 
+    mapping(address => uint256) pendingRewards; 
+
     // times when stacking begins
     mapping(address => uint) startTimes; 
 
     // unstake delay in minutes
-    uint8 private unstakeDelay = 10;
+    uint256 private unstakeDelay = 10;
 
     // reward delay in minutes
-    uint8 private rewardDelay = 20;
+    uint256 private rewardDelay = 20;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "This operation is available only to the owner");
@@ -49,14 +51,17 @@ contract Staking {
         lpToken.transferFrom(msg.sender, address(this), _amount);
         balances[msg.sender] += _amount;
 
-       if (block.timestamp > startTimes[msg.sender] +  uint16(rewardDelay) * 60 ) {
+        if (block.timestamp > startTimes[msg.sender] +  rewardDelay * 60 ) {
              // if reward delay has passed then claim 
              claim();
+        } else {
+            pendingRewards[msg.sender] = rewards[msg.sender];
         }
         startTimes[msg.sender] = block.timestamp;
 
         // calculate reward and save it for caller address
-        uint256 reward = rewards[msg.sender] + (_amount * rewardPercent) / 100;
+       // uint256 reward = rewards[msg.sender] + (_amount * rewardPercent) / 100;
+        uint256 reward = (_amount * rewardPercent) / 100;
         rewards[msg.sender] = reward;
     }
 
@@ -65,30 +70,39 @@ contract Staking {
     }
 
     function unstake() timePassed(unstakeDelay) public {
+        if (block.timestamp > startTimes[msg.sender] +  rewardDelay * 60 ) {
+             // if reward delay has passed then claim 
+             claim();
+        } else {
+            pendingRewards[msg.sender] = rewards[msg.sender];
+        }
         lpToken.transfer(msg.sender, balances[msg.sender]);
         balances[msg.sender] = 0;
     }
 
-    function claim() timePassed(rewardDelay) public  {
-        rewardToken.transfer(msg.sender, rewards[msg.sender]);
+    function claim() timePassed(rewardDelay) public  {      
+        uint cnt = ((block.timestamp - startTimes[msg.sender]) / 60) / rewardDelay;
+ 
+        uint256 totalReward = rewards[msg.sender] * cnt + pendingRewards[msg.sender];
+        rewardToken.transfer(msg.sender, totalReward);
         rewards[msg.sender] = 0;
     }
 
-    function configure(uint8 _rewardPercent, uint8 _rewardDelay, uint8 _unstakeDelay) onlyOwner public {
+    function configure(uint256 _rewardPercent, uint256 _rewardDelay, uint256 _unstakeDelay) onlyOwner public {
         rewardPercent = _rewardPercent;
         rewardDelay = _rewardDelay;
         unstakeDelay = _unstakeDelay;
     }
 
-    function getRewardDelay() public view returns(uint8) {
+    function getRewardDelay() public view returns(uint256) {
         return rewardDelay;
     }
 
-    function getRewardPercent() public view returns(uint8) {
+    function getRewardPercent() public view returns(uint256) {
         return rewardPercent;
     }
 
-    function getUnstakeDelay() public view returns(uint8) {
+    function getUnstakeDelay() public view returns(uint256) {
         return unstakeDelay;
     }
 }

@@ -91,42 +91,6 @@ describe("Staking", function () {
   })
 
 
-  it("should be able to unstake", async function () {
-    const amount = await lpToken.balanceOf(acc1.address)
-
-    let tx = await staking.stake(amount)
-    await tx.wait()
-
-    await network.provider.send("evm_increaseTime", [10 * 60 + 1]) // add 10 mins and 1 sec to current time
-
-    tx = await staking.unstake()
-    await tx.wait() 
-
-    expect(await staking.stakedBy(acc1.address)).to.equal(0);
-  })
-
-
-  it("should not be able to unstake before configured delay", async function () {
-    const amount = await lpToken.balanceOf(acc1.address)
-
-    let tx = await staking.stake(amount)
-    await tx.wait()
-
-    await expect(staking.unstake()).to.be.revertedWith("Time delay has not passed yet");
-  })
-
-
-  it("should be able to claim reward", async function () {
-    const amount = await lpToken.balanceOf(acc1.address)
-
-    let tx = await staking.stake(amount)
-    await tx.wait()
-
-    await network.provider.send("evm_increaseTime", [20 * 60 + 1]) // add 20 mins and 1 sec to current time
-
-    tx = await staking.claim()
-    await tx.wait() 
-  })
 
   it("should be able to stake, then claim, then stake again and claim", async function () {
     let initialValue = await rewardToken.balanceOf(acc1.address)
@@ -202,6 +166,55 @@ describe("Staking", function () {
     expect(await rewardToken.balanceOf(acc1.address)).to.equal(calculatedReward);
  })
 
+ it("should be able to unstake", async function () {
+  const amount = await lpToken.balanceOf(acc1.address)
+
+  let tx = await staking.stake(amount)
+  await tx.wait()
+
+  await network.provider.send("evm_increaseTime", [10 * 60 + 1]) // add 10 mins and 1 sec to current time
+
+  tx = await staking.unstake()
+  await tx.wait() 
+
+  expect(await staking.stakedBy(acc1.address)).to.equal(0);
+})
+
+it("should be able to unstake with claim after delay", async function () {
+  const amount = await lpToken.balanceOf(acc1.address)
+
+  let tx = await staking.stake(amount)
+  await tx.wait()
+
+  await network.provider.send("evm_increaseTime", [20 * 60 + 1]) // add 10 mins and 1 sec to current time
+
+  tx = await staking.unstake()
+  await tx.wait() 
+
+  expect(await staking.stakedBy(acc1.address)).to.equal(0);
+})
+
+it("should not be able to unstake before configured delay", async function () {
+  const amount = await lpToken.balanceOf(acc1.address)
+
+  let tx = await staking.stake(amount)
+  await tx.wait()
+
+  await expect(staking.unstake()).to.be.revertedWith("Time delay has not passed yet");
+})
+
+
+it("should be able to claim reward", async function () {
+  const amount = await lpToken.balanceOf(acc1.address)
+
+  let tx = await staking.stake(amount)
+  await tx.wait()
+
+  await network.provider.send("evm_increaseTime", [60 * 60 + 1]) // add 20 mins and 1 sec to current time
+
+  tx = await staking.claim()
+  await tx.wait() 
+})
 
   it("should not be able to claim before configured delay", async function () {
     const amount = await lpToken.balanceOf(acc1.address)
