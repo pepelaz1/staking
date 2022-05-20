@@ -18,8 +18,6 @@ contract Staking {
 
     mapping(address => uint256) balances;   
 
-    //mapping(address => uint256) rewards;   
-
     // times when stacking begins
     mapping(address => uint) startTimes; 
 
@@ -54,10 +52,6 @@ contract Staking {
              claim();
         }
         startTimes[msg.sender] = block.timestamp;
-
-        // calculate reward and save it for caller address
-       // uint256 reward = rewards[msg.sender] + (_amount * rewardPercent) / 100;
-       // rewards[msg.sender] = (balances[msg.sender] * rewardPercent) / 100;
     }
 
     function stakedBy(address _account) public view returns (uint256) {
@@ -73,14 +67,11 @@ contract Staking {
         balances[msg.sender] = 0;
     }
 
-
     function claim() public  {      
         uint cnt = ((block.timestamp - startTimes[msg.sender]) / 60) / rewardDelay;
-
-
-        uint256 totalReward = (balances[msg.sender] * rewardPercent) / 100 * cnt;
+        uint256 totalReward = balances[msg.sender] * rewardPercent  * cnt / 100;
         rewardToken.transfer(msg.sender, totalReward);
-       // rewards[msg.sender] = 0;
+        startTimes[msg.sender] = block.timestamp;
     }
 
     function configure(uint256 _rewardPercent, uint256 _rewardDelay, uint256 _unstakeDelay) onlyOwner public {
