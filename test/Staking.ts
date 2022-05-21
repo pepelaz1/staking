@@ -54,18 +54,28 @@ describe("Staking", function () {
 
     // approve
     await tokenOne.approve(routerAddress, MaxUint256);
-
+   
     // add liquidity     
     tx = await router.addLiquidityETH(tokenOne.address, parseEther('0.05'), 0, 0, acc1.address, MaxUint256, {
-      value: parseEther('0.00001')
+      value: parseEther('0.001')
     });
     await tx.wait();
 
-    const Staking = await ethers.getContractFactory('Staking', acc1)
+    tx = await router.addLiquidityETH(tokenOne.address, parseEther('0.06'), 0, 0, acc2.address, MaxUint256, {
+      value: parseEther('0.001')
+    });
+    await tx.wait();
+
+    const Staking = await ethers.getContractFactory('Staking')
     staking = await Staking.deploy(lpToken.address, rewardToken.address)
     await staking.deployed()
 
     await lpToken.approve(staking.address, MaxUint256);
+
+
+    lpToken = await ethers.getContractAt("ERC20", pairAddress, acc2);
+    await lpToken.approve(staking.address, MaxUint256);
+
 
     // mint some reward to staking contract
     let rewardSupply = parseEther("3000")
@@ -154,6 +164,34 @@ describe("Staking", function () {
 
     const result = before.add(parseEther("0.00006"))
     expect(await rewardToken.balanceOf(acc1.address)).to.equal(result);
+  })
+
+  it("should be able to stake and claim by different accounts", async function () {
+    const amount1 = parseEther("0.0001")
+    let before1 = await rewardToken.balanceOf(acc1.address);
+    let tx = await staking.stake(amount1)
+    await tx.wait()
+
+    await network.provider.send("evm_increaseTime", [40 * 60 + 1]) 
+
+    const amount2 = parseEther("0.0001")
+    let before2 = await rewardToken.balanceOf(acc2.address)
+    tx = await staking.connect(acc2).stake(amount2)
+    await tx.wait()
+
+    await network.provider.send("evm_increaseTime", [20 * 60 + 1]) 
+
+    tx = await staking.connect(acc1).claim()
+    await tx.wait() 
+
+    tx = await staking.connect(acc2).claim()
+    await tx.wait() 
+   
+    const result1 = before1.add(parseEther("0.00006"))
+    expect(await rewardToken.balanceOf(acc1.address)).to.equal(result1);
+
+    const result2 = before2.add(parseEther("0.00002"))
+    expect(await rewardToken.balanceOf(acc2.address)).to.equal(result2);
   })
 
 

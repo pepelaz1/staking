@@ -46,7 +46,7 @@ contract Staking {
     function stake(uint256 _amount) public {  
         lpToken.transferFrom(msg.sender, address(this), _amount);
         balances[msg.sender] += _amount;
-        
+
         if (startTimes[msg.sender] != 0 && block.timestamp > startTimes[msg.sender] +  rewardDelay * 60) {
              claim();
         } else {
